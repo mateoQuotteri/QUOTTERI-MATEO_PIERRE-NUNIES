@@ -1,34 +1,22 @@
 package com.backend.demo.service.impl;
 
-import static org.junit.jupiter.api.Assertions.*;
-import com.backend.demo.service.impl.PacienteServicio;
-import com.backend.demo.service.impl.OdontologoServicio;
-
 import com.backend.demo.dto.entrada.DomicilioEntradaDto;
 import com.backend.demo.dto.entrada.OdontologoEntradaDto;
 import com.backend.demo.dto.entrada.PacienteEntradaDto;
 import com.backend.demo.dto.entrada.TurnoEntradaDto;
 import com.backend.demo.dto.salida.PacienteSalidaDto;
 import com.backend.demo.dto.salida.TurnoSalidaDto;
-import com.backend.demo.entity.Domicilio;
-import com.backend.demo.entity.Odontologo;
-import com.backend.demo.entity.Paciente;
-import com.backend.demo.entity.Turno;
 import com.backend.demo.exceptions.RecursoNoEncontradoExcepcion;
 import com.backend.demo.exceptions.SolicitudIncorrectaExcepcion;
-import com.sun.xml.bind.v2.runtime.output.DOMOutput;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
-
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -37,6 +25,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class TurnoServicioTest {
     @Autowired
     private TurnoServicio turnoServicio;
+    @Autowired
+    private PacienteServicio pacienteServicio;
+    @Autowired
+
+    private OdontologoServicio odontologoServicio;
 
 
     @Test
@@ -55,9 +48,37 @@ class TurnoServicioTest {
 
     }
 
+    @Test
+    @Order(2)
+    void debeRegistrarUnTurnoCorrectamenteConUnPaciente_Y_OdontologoQueInsertamosEnEsteMismoMetodoComoParametros() throws SolicitudIncorrectaExcepcion, RecursoNoEncontradoExcepcion {
+
+        PacienteEntradaDto pacienteEntradaDto = new PacienteEntradaDto("Juan", "Perez", 123456, LocalDate.of(2024, 12, 22), new DomicilioEntradaDto("Calle", 1234, "Localidad", "Provincia"));
+        OdontologoEntradaDto odontologoEntradaDto = new OdontologoEntradaDto("kskj3", "jorge" , "martinez");
+
+        pacienteServicio.ingresarPaciente(pacienteEntradaDto);
+        odontologoServicio.ingresarOdontologo(odontologoEntradaDto);
+
+        LocalDateTime fechaHora = LocalDateTime.of(2024, 5, 28, 15, 30);
+        TurnoEntradaDto turno = new TurnoEntradaDto(1L, 1L, fechaHora);
 
 
+       TurnoSalidaDto turnoRegistro = turnoServicio.ingresarTurno(turno);
+
+        assertNotNull(turnoRegistro);
+        assertEquals("kskj3", turnoRegistro.getOdontologoSalidaDto().getMatricula());
+
+    }
 
 
+    @Test
+    @Order(3)
+    void debeBuscarElTurnoConId1Correctamente() throws SolicitudIncorrectaExcepcion, RecursoNoEncontradoExcepcion {
+        TurnoSalidaDto turno = turnoServicio.buscarTurno(1L);
 
+        //assert
+        assertNotNull(turno);
+        assertEquals(1, turno.getId());
+        assertEquals("Perez", turno.getPacienteSalidaDto().getApellido());
+
+    }
 }
